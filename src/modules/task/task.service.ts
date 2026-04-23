@@ -1,8 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { CreateTaskDto } from "./dto/create-task.dto";
+import { PrismaService } from "../../prisma.service";
 
 @Injectable()
 export class TaskService {
+
+    constructor(
+        private prisma: PrismaService
+    ) {}
+
+    public async getAllTasks(): Promise<any[]> {
+        return await this.prisma.task.findMany();
+    }
 
     private tasks: any[] = [];
 
