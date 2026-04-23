@@ -1,28 +1,45 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "cjs"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  name       String   @db.VarChar(200)
-  lastname   String   @db.VarChar(250)
-  username   String   @db.VarChar(100)
-  password   String
-  created_at DateTime @default(now())
-  tasks      Task[]
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(200)
+  lastName  String   @db.VarChar(300)
+  username  String   @unique @db.VarChar(100) 
+  password  String   @db.Text       
+  hashToken String?  @db.Text
+  createdAt DateTime @default(now())
+  tasks     Task[]
+  logs      Logs[]
+
+  @@map("users")
 }
 
 model Task {
-  id          Int     @id @default(autoincrement())
-  name        String  @db.VarChar(150)
-  description String  @db.VarChar(200)
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(150)
+  description String   @db.Text             // Cambiado de LongText a Text
   priority    Boolean
   user_id     Int
-  user        User    @relation(fields: [user_id], references: [id])
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@map("tasks")
+}
+
+model Logs {
+  id         Int      @id @default(autoincrement())
+  statusCode Int
+  timestamp  DateTime
+  path       String   @db.Text
+  error      String   @db.Text
+  errorCode  String   @db.Text
+  session_id Int?
+  user       User?    @relation(fields: [session_id], references: [id])
 }

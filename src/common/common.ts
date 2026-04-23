@@ -1,4 +1,5 @@
-//Globales: guards, interceptors, filters, decoratorsimport { Module } from '@nestjs/common';
+//Globales: guards, interceptors, filters, decorators
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UtilService } from './services/util.service';
