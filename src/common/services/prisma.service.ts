@@ -14,6 +14,10 @@ export class PrismaService
             ssl: { rejectUnauthorized: false }
         });
 
+        pool.on('error', (err) => {
+            console.error('Unexpected error on idle pg pool', err);
+        });
+
         const adapter = new PrismaPg(pool);
 
         super({

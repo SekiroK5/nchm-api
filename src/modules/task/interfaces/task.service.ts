@@ -9,12 +9,7 @@ export class TaskService {
     constructor(private prisma: PrismaService) { }
 
     async getAllTasks(user: any): Promise<Task[]> {
-        if (user.role === 'ADMIN') {
-            return this.prisma.task.findMany();
-        }
-        return this.prisma.task.findMany({
-            where: { user_id: user.id }
-        });
+        return this.prisma.task.findMany();
     }
 
     async insertTask(data: CreateTaskDto, user: any): Promise<Task> {
@@ -45,15 +40,16 @@ export class TaskService {
     async getTaskById(id: number, user: any): Promise<Task | null> {
         const task = await this.prisma.task.findUnique({ where: { id } });
         if (!task) return null;
-        if (user.role !== 'ADMIN' && task.user_id !== user.id) {
-            throw new ForbiddenException('No tienes permiso para ver esta tarea');
-        }
         return task;
     }
 
     async updateTask(id: number, data: UpdateTaskDto, user: any): Promise<Task> {
         const task = await this.getTaskById(id, user);
         if (!task) throw new NotFoundException('Tarea no encontrada');
+
+        if (user.role !== 'ADMIN' && task.user_id !== user.id) {
+            throw new ForbiddenException('No tienes permiso para actualizar esta tarea');
+        }
 
         return this.prisma.task.update({
             where: { id },
@@ -64,6 +60,10 @@ export class TaskService {
     async delete(id: number, user: any): Promise<boolean> {
         const task = await this.getTaskById(id, user);
         if (!task) throw new NotFoundException('Tarea no encontrada');
+
+        if (user.role !== 'ADMIN' && task.user_id !== user.id) {
+            throw new ForbiddenException('No tienes permiso para eliminar esta tarea');
+        }
 
         try {
             await this.prisma.task.delete({ where: { id } });

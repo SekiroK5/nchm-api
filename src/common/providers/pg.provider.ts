@@ -8,6 +8,10 @@ export const pgProvider = {
             ssl: { rejectUnauthorized: false }
         });
 
+        client.on('error', (err) => {
+            console.error('Unexpected error on idle pg client', err);
+        });
+
         await client.connect();
         return client;
     }
