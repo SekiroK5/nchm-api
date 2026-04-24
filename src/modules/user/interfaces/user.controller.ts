@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Post, Put, UseGuards, Req, Query, ForbiddenException } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { User } from "./../entities/user.entity";
 import { CreateUserDto } from "./../dto/create-user.dto";
@@ -13,13 +13,21 @@ export class UserController {
 
     @Get()
     @UseGuards(AuthGuard)
-    getAllUsers(): Promise<User[]> {
+    getAllUsers(@Req() req: any): Promise<User[]> {
+        if (req.user.role !== 'ADMIN') throw new ForbiddenException("No tienes permisos para ver a todos los usuarios.");
         return this.userService.getAllUsers();
+    }
+
+    @Get("logs")
+    @UseGuards(AuthGuard)
+    public async getLogs(@Req() req: any, @Query() query: any) {
+        return this.userService.getLogs(req.user, query);
     }
 
     @Get(":id")
     @UseGuards(AuthGuard)
-    public async listUserById(@Param("id", ParseIntPipe) id: number): Promise<User> {
+    public async listUserById(@Param("id", ParseIntPipe) id: number, @Req() req: any): Promise<User> {
+        if (req.user.role !== 'ADMIN' && req.user.id !== id) throw new ForbiddenException("No tienes permisos para ver este perfil.");
         const result = await this.userService.getUserById(id);
 
         if (result == undefined)
@@ -41,14 +49,16 @@ export class UserController {
 
     @Put(":id")
     @UseGuards(AuthGuard)
-    public async updateUser(@Param("id", ParseIntPipe) id: number, @Body() user: UpdateUserDto): Promise<User> {
-        return this.userService.updateUser(id, user);
+    public async updateUser(@Param("id", ParseIntPipe) id: number, @Body() user: UpdateUserDto, @Req() req: any): Promise<User> {
+        if (req.user.role !== 'ADMIN' && req.user.id !== id) throw new ForbiddenException("No puedes editar el perfil de otra persona.");
+        return this.userService.updateUser(id, user, req.user);
     }
 
     @Delete(":id")
     @UseGuards(AuthGuard)
-    public async deleteUser(@Param("id", ParseIntPipe) id: number): Promise<boolean> {
-        await this.userService.deleteUser(id);
+    public async deleteUser(@Param("id", ParseIntPipe) id: number, @Req() req: any): Promise<boolean> {
+        if (req.user.role !== 'ADMIN' && req.user.id !== id) throw new ForbiddenException("No puedes eliminar el perfil de otra persona.");
+        await this.userService.deleteUser(id, req.user);
         return true;
     }
 }

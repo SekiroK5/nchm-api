@@ -12,7 +12,6 @@ export const pgProvider = {
         });
 
         await client.connect();
-        console.log("Conectado a la BD")
         return client;
     }
 }

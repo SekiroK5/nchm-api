@@ -14,6 +14,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './../dto/login.dto';
 import { UtilService } from 'src/common/services/util.service';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { PrismaService } from 'src/common/services/prisma.service';
 import { access } from 'fs';
 
 @Controller('api/auth')
@@ -21,6 +22,7 @@ export class AuthController {
     constructor(
         private authSvc: AuthService,
         private readonly utilSvc: UtilService,
+        private prisma: PrismaService,
     ) { }
 
     //POST /auth/register - 201 Created
@@ -32,10 +34,35 @@ export class AuthController {
 
         // Verificar el usuario y contraseña (Verificar el username para comparar con la base de datos)
         const user = await this.authSvc.getUserByUsername(username);
-        if (!user) throw new UnauthorizedException('El usuario y/o contraseña es incorrecto');
+        if (!user) {
+            await this.prisma.logs.create({
+                data: {
+                    statusCode: 401,
+                    timestamp: new Date(),
+                    path: '/api/auth/login',
+                    error: `Intento de login fallido para usuario: ${username}`,
+                    eventType: 'LOGIN_FAILED',
+                    severity: 'WARNING'
+                }
+            });
+            throw new UnauthorizedException('El usuario y/o contraseña es incorrecto');
+        }
 
         const isValid = await this.utilSvc.verifyPassword(password, user.password!);
-        if (!isValid) throw new UnauthorizedException('El usuario y/o contraseña es incorrecto');
+        if (!isValid) {
+            await this.prisma.logs.create({
+                data: {
+                    statusCode: 401,
+                    timestamp: new Date(),
+                    path: '/api/auth/login',
+                    error: `Contraseña incorrecta para usuario: ${username}`,
+                    eventType: 'LOGIN_FAILED',
+                    severity: 'WARNING',
+                    session_id: user.id
+                }
+            });
+            throw new UnauthorizedException('El usuario y/o contraseña es incorrecto');
+        }
 
         //Obtener la informacion del usuario (Traer el id, nombre, etc)
         const { password: _pwd, username: _usr, ...payload } = user;
@@ -82,7 +109,6 @@ export class AuthController {
         const refresh_token = await this.utilSvc.generateJWT(payload, '7d');
         const hashRT = await this.utilSvc.hash(refresh_token);
         await this.authSvc.updateHash(user.id, hashRT);
-        console.log('Nuevo hash de refresh token:', hashRT);
 
         payload.hashToken = hashRT;
         const access_token = await this.utilSvc.generateJWT(payload);

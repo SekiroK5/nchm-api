@@ -24,25 +24,25 @@ export class TaskController {
     constructor(private taskSvc: TaskService) { }
 
     @Get()
-    async task(): Promise<Task[]> {
-        return await this.taskSvc.getAllTasks();
+    async task(@Req() req: any): Promise<Task[]> {
+        return await this.taskSvc.getAllTasks(req['user']);
     }
 
     @Post()
     // Prisma devuelve el objeto creado, no un array
     public async insertTask(@Body() task: CreateTaskDto, @Req() req: any): Promise<Task> {
-        task.user_id = req['user'].id;
-        return this.taskSvc.insertTask(task);
+        return this.taskSvc.insertTask(task, req['user']);
     }
 
     @Put('update/:id')
     // El retorno es una Task única
     public async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body() task: UpdateTaskDto
+        @Body() task: UpdateTaskDto,
+        @Req() req: any
     ): Promise<Task> {
         try {
-            return await this.taskSvc.updateTask(id, task);
+            return await this.taskSvc.updateTask(id, task, req['user']);
         } catch (error) {
             // Prisma lanza error si no encuentra el ID al hacer update
             throw new HttpException(`Tarea con id ${id} no encontrada`, HttpStatus.NOT_FOUND);
@@ -50,8 +50,8 @@ export class TaskController {
     }
 
     @Get(':id')
-    public async findById(@Param('id', ParseIntPipe) id: number): Promise<Task> {
-        const result = await this.taskSvc.getTaskById(id);
+    public async findById(@Param('id', ParseIntPipe) id: number, @Req() req: any): Promise<Task> {
+        const result = await this.taskSvc.getTaskById(id, req['user']);
 
         // Prisma devuelve null si findUnique no encuentra nada
         if (!result) {
@@ -61,7 +61,7 @@ export class TaskController {
     }
 
     @Delete(':id')
-    public delete(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
-        return this.taskSvc.delete(id);
+    public delete(@Param('id', ParseIntPipe) id: number, @Req() req: any): Promise<boolean> {
+        return this.taskSvc.delete(id, req['user']);
     }
 }

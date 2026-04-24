@@ -6,12 +6,20 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(200)
   lastName  String   @db.VarChar(300)
   username  String   @unique @db.VarChar(100) 
+  email     String?  @unique @db.VarChar(150)
+  phone     String?  @db.VarChar(20)
   password  String   @db.Text       
+  role      Role     @default(USER)
   hashToken String?  @db.Text
   createdAt DateTime @default(now())
   tasks     Task[]
@@ -38,8 +46,10 @@ model Logs {
   statusCode Int
   timestamp  DateTime
   path       String   @db.Text
-  error      String   @db.Text
-  errorCode  String   @db.Text
+  error      String?  @db.Text
+  errorCode  String?  @db.Text
+  eventType  String?  @db.VarChar(50) // e.g. "LOGIN_FAILED", "TASK_CREATED"
+  severity   String?  @db.VarChar(20) // e.g. "INFO", "WARNING", "ERROR"
   session_id Int?
   user       User?    @relation(fields: [session_id], references: [id])
 }

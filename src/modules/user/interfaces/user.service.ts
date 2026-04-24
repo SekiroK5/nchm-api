@@ -22,6 +22,9 @@ export class UserService {
                 name: true,
                 lastName: true,
                 username: true,
+                email: true,
+                phone: true,
+                role: true,
                 password: false
             }
         })
@@ -36,6 +39,9 @@ export class UserService {
                 name: true,
                 lastName: true,
                 username: true,
+                email: true,
+                phone: true,
+                role: true,
                 password: false
             }
         })
@@ -51,6 +57,9 @@ export class UserService {
                     name: true,
                     lastName: true,
                     username: true,
+                    email: true,
+                    phone: true,
+                    role: true,
                     password: false
                 }
             })
@@ -63,7 +72,7 @@ export class UserService {
         }
     }
 
-    public async updateUser(id: number, userUpdate: UpdateUserDto): Promise<User> {
+    public async updateUser(id: number, userUpdate: UpdateUserDto, currentUser: any): Promise<User> {
         const userUpdated = await this.prisma.user.update({
             where: { id },
             data: userUpdate,
@@ -72,13 +81,29 @@ export class UserService {
                 name: true,
                 lastName: true,
                 username: true,
+                email: true,
+                phone: true,
+                role: true,
                 password: false
             }
-        })
+        });
+        
+        await this.prisma.logs.create({
+            data: {
+                statusCode: 200,
+                timestamp: new Date(),
+                path: 'UserService.updateUser',
+                eventType: 'USER_UPDATED',
+                severity: 'INFO',
+                session_id: currentUser.id,
+                error: `Usuario actualizado: ${id}`
+            }
+        });
+        
         return userUpdated;
     }
 
-    public async deleteUser(id: number): Promise<User | null> {
+    public async deleteUser(id: number, currentUser: any): Promise<User | null> {
 
         //Primero eliminar las tareas del usuario (Considerar segun la logica del negocio, lo ideal seria 
         //que el usuario no pueda ser eliminado si tiene tareas)
@@ -95,7 +120,7 @@ export class UserService {
 
         //Luego eliminar el usuario 
         try {
-            return await this.prisma.user.delete({
+            const deleted = await this.prisma.user.delete({
                 where: { id },
                 select: {
                     id: true,
@@ -105,12 +130,61 @@ export class UserService {
                     password: false
                 }
             })
-            //return userDeleted;
+
+            await this.prisma.logs.create({
+                data: {
+                    statusCode: 200,
+                    timestamp: new Date(),
+                    path: 'UserService.deleteUser',
+                    eventType: 'USER_DELETED',
+                    severity: 'WARNING',
+                    session_id: currentUser.id,
+                    error: `Usuario eliminado: ${id}`
+                }
+            });
+
+            return deleted;
         } catch (error: any) {
             if (error.code === 'P2025') {
                 throw new NotFoundException(`El usuario con ID ${id} no existe.`);
             }
             throw error;
         }
+    }
+
+    public async getLogs(currentUser: any, query: any) {
+        const where: any = {};
+        
+        if (currentUser.role !== 'ADMIN') {
+            where.session_id = currentUser.id;
+        } else {
+            if (query.user) {
+                where.session_id = parseInt(query.user);
+            }
+        }
+
+        if (query.date) {
+            const startOfDay = new Date(query.date);
+            startOfDay.setUTCHours(0,0,0,0);
+            const endOfDay = new Date(query.date);
+            endOfDay.setUTCHours(23,59,59,999);
+            where.timestamp = {
+                gte: startOfDay,
+                lte: endOfDay
+            };
+        }
+
+        if (query.severity) {
+            where.severity = query.severity;
+        }
+
+        if (query.eventType) {
+            where.eventType = query.eventType;
+        }
+
+        return this.prisma.logs.findMany({
+            where,
+            orderBy: { timestamp: 'desc' }
+        });
     }
 }

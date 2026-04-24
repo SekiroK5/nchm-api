@@ -26,6 +26,8 @@ export class AllExceptionFilter implements ExceptionFilter {
 
         const sessionUser = (request as any)['user'];
 
+        const isInternalError = status === HttpStatus.INTERNAL_SERVER_ERROR;
+
         this.prisma.logs.create({
             data: {
                 statusCode: status,
@@ -33,6 +35,8 @@ export class AllExceptionFilter implements ExceptionFilter {
                 path: request.url,
                 error: Array.isArray(errorText) ? errorText.join(', ') : String(errorText),
                 errorCode: (exception as any).code || 'UNKNOWN_ERROR',
+                eventType: 'ERROR',
+                severity: 'ERROR',
                 session_id: sessionUser?.id ?? null,
             },
         }).catch(() => { });
@@ -41,8 +45,8 @@ export class AllExceptionFilter implements ExceptionFilter {
             statusCode: status,
             timestamp: new Date().toISOString(),
             path: request.url,
-            error: Array.isArray(errorText) ? errorText : errorText,
-            errorCode: (exception as any).code || 'UNKNOWN_ERROR',
+            message: isInternalError ? "Ocurrió un error inesperado." : (Array.isArray(errorText) ? errorText[0] : errorText),
+            error: isInternalError ? "Internal Server Error" : "Bad Request"
         });
     }
 }
