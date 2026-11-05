@@ -22,7 +22,8 @@ API **NestJS + Prisma + PostgreSQL** con **JWT + refresh tokens** y un frontend 
 |---|---|---|
 | Unitarias (Jest, `src/**/*.spec.ts`) | — | **37 / 37** ✅ |
 | API / integración / seguridad (Supertest + PostgreSQL real, `test/*.e2e-spec.ts`) | **47 / 61** (14 fallas = 14 defectos) | **62 / 62** ✅ |
-| Carga (k6, `k6/health-test.js`) | — | Se ejecuta en GitHub Actions (job `smoke-load`) |
+| Carga (k6, `k6/health-test.js`, 5 VUs × 30 s) | — | 150 peticiones, **0 % errores, p95 = 2.22 ms** (umbral 500 ms) en GitHub Actions |
+| CI (GitHub Actions) | — | Jobs `backend` y `smoke-load` ✅ |
 
 Se encontraron **17 defectos** (13 en la API, 4 en el frontend). Los 13 de la API están corregidos y cubiertos por pruebas de regresión; los del frontend quedan reportados.
 
