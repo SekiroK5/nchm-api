@@ -1,0 +1,87 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    # BD PostgreSQL desechable y exclusiva para las pruebas
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tester
+          POSTGRES_PASSWORD: tester
+          POSTGRES_DB: taskflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tester"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://tester:tester@localhost:5432/taskflow_test
+      TEST_DATABASE_URL: postgresql://tester:tester@localhost:5432/taskflow_test
+      DB_SSL: 'false'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma db push
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Unit tests + coverage
+        run: npm run test:cov
+      - name: API / integration / security tests
+        run: npm run test:e2e
+
+  smoke-load:
+    # Prueba de carga corta (k6) contra la API levantada dentro del runner
+    needs: backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tester
+          POSTGRES_PASSWORD: tester
+          POSTGRES_DB: taskflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tester"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://tester:tester@localhost:5432/taskflow_test
+      DB_SSL: 'false'
+      JWT_ACCESS_SECRET: ci-only-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma db push
+      - run: npm run build
+      - name: Start API
+        run: |
+          node dist/src/main &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/health && break; sleep 1; done
+      - uses: grafana/setup-k6-action@v1
+      - name: k6 health check
+        run: k6 run -e BASE_URL=http://localhost:3000 k6/health-test.js

@@ -44,7 +44,10 @@ export class TaskController {
         try {
             return await this.taskSvc.updateTask(id, task, req['user']);
         } catch (error) {
-            // Prisma lanza error si no encuentra el ID al hacer update
+            // Ajena o inexistente -> 404 (misma respuesta, no revela existencia)
+            if (error instanceof HttpException && error.getStatus() !== HttpStatus.NOT_FOUND) {
+                throw error;
+            }
             throw new HttpException(`Tarea con id ${id} no encontrada`, HttpStatus.NOT_FOUND);
         }
     }

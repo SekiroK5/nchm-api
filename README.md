@@ -1,3 +1,7 @@
+# TaskFlow API (nchm-api)
+
+> **Pruebas:** plan, casos, reportes de bugs y cómo ejecutar la suite en [docs/testing](docs/testing/README.md).
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

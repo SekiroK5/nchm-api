@@ -1,0 +1,69 @@
+
+> nchm-api@0.0.1 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand --forceExit
+
+[Nest] 2032  - 04/11/2026, 7:52:06 p.m.   ERROR [ExceptionsHandler] PayloadTooLargeError: request entity too large
+    at readStream (<repo>\node_modules\raw-body\index.js:163:17)
+    at getRawBody (<repo>\node_modules\raw-body\index.js:116:12)
+    at read (<repo>\node_modules\body-parser\lib\read.js:113:3)
+    at jsonParser (<repo>\node_modules\body-parser\lib\types\json.js:88:5)
+    at Layer.handleRequest (<repo>\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (<repo>\node_modules\router\index.js:342:13)
+    at <repo>\node_modules\router\index.js:297:9
+    at processParams (<repo>\node_modules\router\index.js:582:12)
+    at next (<repo>\node_modules\router\index.js:291:5)
+    at cors (<repo>\node_modules\cors\lib\index.js:188:7)
+    at <repo>\node_modules\cors\lib\index.js:224:17
+    at originCallback (<repo>\node_modules\cors\lib\index.js:214:15)
+    at <repo>\node_modules\cors\lib\index.js:219:13
+    at optionsCallback (<repo>\node_modules\cors\lib\index.js:199:9)
+    at corsMiddleware (<repo>\node_modules\cors\lib\index.js:204:7)
+    at Layer.handleRequest (<repo>\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (<repo>\node_modules\router\index.js:342:13)
+    at <repo>\node_modules\router\index.js:297:9
+    at processParams (<repo>\node_modules\router\index.js:582:12)
+    at next (<repo>\node_modules\router\index.js:291:5)
+    at <repo>\node_modules\@nestjs\platform-express\adapters\express-adapter.js:34:17
+    at Layer.handleRequest (<repo>\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (<repo>\node_modules\router\index.js:342:13)
+    at <repo>\node_modules\router\index.js:297:9
+    at processParams (<repo>\node_modules\router\index.js:582:12)
+    at next (<repo>\node_modules\router\index.js:291:5)
+    at router.handle (<repo>\node_modules\router\index.js:186:3)
+    at app.handle (<repo>\node_modules\express\lib\application.js:177:15)
+    at Server.app (<repo>\node_modules\express\lib\express.js:38:9)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:123:17) {
+  expected: 2097207,
+  length: 2097207,
+  limit: 102400,
+  type: 'entity.too.large'
+}
+PASS test/task.e2e-spec.ts (19.089 s)
+PASS test/user.e2e-spec.ts (11.211 s)
+  ● Console
+
+    console.log
+      prisma:error 
+      Invalid `this.prisma.user.create()` invocation in
+      <repo>\src\modules\user\interfaces\user.service.ts:51:56
+      
+        48 
+        49 public async insertUser(user: CreateUserDto): Promise<User> {
+        50     try {
+      → 51         const userCreated = await this.prisma.user.create(
+      Unique constraint failed on the (not available)
+
+      at Object.ku (../node_modules/@prisma/internals/src/logger.ts:13:11)
+
+PASS test/auth.e2e-spec.ts
+PASS test/rate-limit.e2e-spec.ts
+PASS test/smoke.e2e-spec.ts
+
+Test Suites: 5 passed, 5 total
+Tests:       62 passed, 62 total
+Snapshots:   0 total
+Time:        37.772 s, estimated 49 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

@@ -49,7 +49,15 @@ export class UserService {
     public async insertUser(user: CreateUserDto): Promise<User> {
         try {
             const userCreated = await this.prisma.user.create({
-                data: user,
+                // Lista explícita de campos: el rol nunca viene del cliente.
+                data: {
+                    name: user.name,
+                    lastName: user.lastName,
+                    username: user.username,
+                    password: user.password,
+                    email: user.email,
+                    phone: user.phone,
+                },
                 select: {
                     id: true,
                     name: true,
@@ -73,7 +81,12 @@ export class UserService {
     public async updateUser(id: number, userUpdate: UpdateUserDto, currentUser: any): Promise<User> {
         const userUpdated = await this.prisma.user.update({
             where: { id },
-            data: userUpdate,
+            data: {
+                name: userUpdate.name,
+                lastName: userUpdate.lastName,
+                email: userUpdate.email,
+                phone: userUpdate.phone,
+            },
             select: {
                 id: true,
                 name: true,

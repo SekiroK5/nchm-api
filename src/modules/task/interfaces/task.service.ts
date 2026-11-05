@@ -8,8 +8,12 @@ import { UpdateTaskDto } from '../dto/update-task.dto';
 export class TaskService {
     constructor(private prisma: PrismaService) { }
 
+    /** Un ADMIN ve todas las tareas; cualquier otro usuario solo las suyas. */
     async getAllTasks(user: any): Promise<Task[]> {
-        return this.prisma.task.findMany();
+        return this.prisma.task.findMany({
+            where: user.role === 'ADMIN' ? {} : { user_id: user.id },
+            orderBy: { id: 'asc' },
+        });
     }
 
     async insertTask(data: CreateTaskDto, user: any): Promise<Task> {
@@ -37,10 +41,15 @@ export class TaskService {
         return task;
     }
 
+    /**
+     * Devuelve la tarea solo si pertenece al usuario (o si es ADMIN).
+     * Una tarea ajena se trata igual que una inexistente (null -> 404) para
+     * no revelar qué IDs existen.
+     */
     async getTaskById(id: number, user: any): Promise<Task | null> {
-        const task = await this.prisma.task.findUnique({ where: { id } });
-        if (!task) return null;
-        return task;
+        return this.prisma.task.findFirst({
+            where: user.role === 'ADMIN' ? { id } : { id, user_id: user.id },
+        });
     }
 
     async updateTask(id: number, data: UpdateTaskDto, user: any): Promise<Task> {
@@ -51,9 +60,11 @@ export class TaskService {
             throw new ForbiddenException('No tienes permiso para actualizar esta tarea');
         }
 
+        // Solo campos permitidos: nunca user_id, id ni createdAt del cliente.
+        const { name, description, priority, completed } = data;
         return this.prisma.task.update({
             where: { id },
-            data: data,
+            data: { name, description, priority, completed },
         });
     }
 

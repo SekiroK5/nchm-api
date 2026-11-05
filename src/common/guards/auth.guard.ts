@@ -15,12 +15,18 @@ export class AuthGuard implements CanActivate {
         if (!token)
             throw new UnauthorizedException();
 
+        let payload: any;
         try {
-            const payload = await this.utilSvc.getPayload(token);
-            request['user'] = payload;
+            payload = await this.utilSvc.getPayload(token);
         } catch {
             throw new UnauthorizedException();
         }
+
+        // Un refresh token (7 días) nunca debe servir como access token.
+        if (payload?.typ === 'refresh')
+            throw new UnauthorizedException();
+
+        request['user'] = payload;
 
         return true;
     }
