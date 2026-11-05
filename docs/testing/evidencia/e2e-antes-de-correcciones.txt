@@ -1,0 +1,307 @@
+
+> nchm-api@0.0.1 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand --forceExit
+
+[Nest] 15712  - 04/11/2026, 7:48:30 p.m.   ERROR [ExceptionsHandler] PayloadTooLargeError: request entity too large
+    at readStream (<repo>\node_modules\raw-body\index.js:163:17)
+    at getRawBody (<repo>\node_modules\raw-body\index.js:116:12)
+    at read (<repo>\node_modules\body-parser\lib\read.js:113:3)
+    at jsonParser (<repo>\node_modules\body-parser\lib\types\json.js:88:5)
+    at Layer.handleRequest (<repo>\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (<repo>\node_modules\router\index.js:342:13)
+    at <repo>\node_modules\router\index.js:297:9
+    at processParams (<repo>\node_modules\router\index.js:582:12)
+    at next (<repo>\node_modules\router\index.js:291:5)
+    at cors (<repo>\node_modules\cors\lib\index.js:188:7)
+    at <repo>\node_modules\cors\lib\index.js:224:17
+    at originCallback (<repo>\node_modules\cors\lib\index.js:214:15)
+    at <repo>\node_modules\cors\lib\index.js:219:13
+    at optionsCallback (<repo>\node_modules\cors\lib\index.js:199:9)
+    at corsMiddleware (<repo>\node_modules\cors\lib\index.js:204:7)
+    at Layer.handleRequest (<repo>\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (<repo>\node_modules\router\index.js:342:13)
+    at <repo>\node_modules\router\index.js:297:9
+    at processParams (<repo>\node_modules\router\index.js:582:12)
+    at next (<repo>\node_modules\router\index.js:291:5)
+    at <repo>\node_modules\@nestjs\platform-express\adapters\express-adapter.js:34:17
+    at Layer.handleRequest (<repo>\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (<repo>\node_modules\router\index.js:342:13)
+    at <repo>\node_modules\router\index.js:297:9
+    at processParams (<repo>\node_modules\router\index.js:582:12)
+    at next (<repo>\node_modules\router\index.js:291:5)
+    at router.handle (<repo>\node_modules\router\index.js:186:3)
+    at app.handle (<repo>\node_modules\express\lib\application.js:177:15)
+    at Server.app (<repo>\node_modules\express\lib\express.js:38:9)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:123:17) {
+  expected: 2097207,
+  length: 2097207,
+  limit: 102400,
+  type: 'entity.too.large'
+}
+FAIL test/task.e2e-spec.ts (25.879 s)
+  ● Task API › creación y validación › API-04 rechaza un título solo con espacios (400)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 201
+
+      76 |         .set(bearer(owner))
+      77 |         .send({ ...validTask, name: '     ' });
+    > 78 |       expect(res.status).toBe(400);
+         |                          ^
+      79 |     });
+      80 |
+      81 |     it('API-05 rechaza una tarea sin título (400)', async () => {
+
+      at Object.<anonymous> (task.e2e-spec.ts:78:26)
+
+  ● Task API › lectura › API-10 la lista solo contiene las tareas del usuario autenticado
+
+    expect(received).not.toContain(expected) // indexOf
+
+    Expected value: not "Stranger private task"
+    Received array:     ["Owner task", "Stranger private task"]
+
+      151 |       const names = res.body.map((t: { name: string }) => t.name);
+      152 |       expect(names).toContain('Owner task');
+    > 153 |       expect(names).not.toContain('Stranger private task');
+          |                         ^
+      154 |     });
+      155 |
+      156 |     it('API-11 un usuario no puede leer la tarea de otro (BOLA → 403/404)', async () => {
+
+      at Object.<anonymous> (task.e2e-spec.ts:153:25)
+
+  ● Task API › lectura › API-11 un usuario no puede leer la tarea de otro (BOLA → 403/404)
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [403, 404]
+
+      159 |         .get(`/api/task/${taskId}`)
+      160 |         .set(bearer(stranger));
+    > 161 |       expect([403, 404]).toContain(res.status);
+          |                          ^
+      162 |       expect(JSON.stringify(res.body)).not.toContain('Private task');
+      163 |     });
+      164 |
+
+      at Object.<anonymous> (task.e2e-spec.ts:161:26)
+
+  ● Task API › lectura › API-12 la respuesta para tarea ajena y tarea inexistente es la misma
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 404
+    Received: 200
+
+      171 |         .get('/api/task/999999')
+      172 |         .set(bearer(stranger));
+    > 173 |       expect(foreign.status).toBe(missing.status);
+          |                              ^
+      174 |     });
+      175 |
+      176 |     it('API-13 rechaza un id no numérico (400)', async () => {
+
+      at Object.<anonymous> (task.e2e-spec.ts:173:30)
+
+  ● Task API › actualización y eliminación › API-17 el cliente no puede cambiar el dueño con user_id (asignación masiva)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 2
+
+      228 |         .get(PrismaService)
+      229 |         .task.findUnique({ where: { id: taskId } });
+    > 230 |       expect(task?.user_id).toBe(owner.id);
+          |                             ^
+      231 |     });
+      232 |
+      233 |     it('API-18 actualizar acepta descripciones válidas al crear (hasta 250)', async () => {
+
+      at Object.<anonymous> (task.e2e-spec.ts:230:29)
+
+  ● Task API › actualización y eliminación › API-18 actualizar acepta descripciones válidas al crear (hasta 250)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 400
+
+      237 |         .set(bearer(owner))
+      238 |         .send({ description: 'd'.repeat(200) });
+    > 239 |       expect(res.status).toBe(200);
+          |                          ^
+      240 |     });
+      241 |
+      242 |     it('API-19 un usuario no puede eliminar la tarea de otro (403/404)', async () => {
+
+      at Object.<anonymous> (task.e2e-spec.ts:239:26)
+
+FAIL test/user.e2e-spec.ts (15.155 s)
+  ● Console
+
+    console.log
+      prisma:error 
+      Invalid `this.prisma.user.create()` invocation in
+      <repo>\src\modules\user\interfaces\user.service.ts:51:56
+      
+        48 
+        49 public async insertUser(user: CreateUserDto): Promise<User> {
+        50     try {
+      → 51         const userCreated = await this.prisma.user.create(
+      Unique constraint failed on the (not available)
+
+      at Object.ku (../node_modules/@prisma/internals/src/logger.ts:13:11)
+
+  ● User API › registro › USR-02 no permite auto-asignarse el rol ADMIN (escalada de privilegios)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "USER"
+    Received: "ADMIN"
+
+      66 |         .get(PrismaService)
+      67 |         .user.findUnique({ where: { username: body.username } });
+    > 68 |       expect(stored?.role ?? 'USER').toBe('USER');
+         |                                      ^
+      69 |     });
+      70 |
+      71 |     it('USR-03 username duplicado → 409', async () => {
+
+      at Object.<anonymous> (user.e2e-spec.ts:68:38)
+
+  ● User API › control de acceso › USR-06 un USER no puede listar a todos los usuarios
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 200
+
+      105 |         .get('/api/user')
+      106 |         .set(bearer(alice));
+    > 107 |       expect(res.status).toBe(403);
+          |                          ^
+      108 |     });
+      109 |
+      110 |     it('USR-07 un ADMIN sí puede listar a todos los usuarios', async () => {
+
+      at Object.<anonymous> (user.e2e-spec.ts:107:26)
+
+  ● User API › control de acceso › USR-08 un USER no puede ver el perfil (correo/teléfono) de otro
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: [403, 404]
+
+      122 |         .get(`/api/user/${bob.id}`)
+      123 |         .set(bearer(alice));
+    > 124 |       expect([403, 404]).toContain(res.status);
+          |                          ^
+      125 |     });
+      126 |
+      127 |     it('USR-09 un USER puede ver su propio perfil', async () => {
+
+      at Object.<anonymous> (user.e2e-spec.ts:124:26)
+
+  ● User API › control de acceso › USR-11 un USER no puede cambiar su propio rol al editar su perfil
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "USER"
+    Received: "ADMIN"
+
+      149 |         .get(PrismaService)
+      150 |         .user.findUnique({ where: { id: alice.id } });
+    > 151 |       expect(stored?.role).toBe('USER');
+          |                            ^
+      152 |     });
+      153 |
+      154 |     it('USR-12 un USER solo ve sus propios registros de auditoría', async () => {
+
+      at Object.<anonymous> (user.e2e-spec.ts:151:28)
+
+FAIL test/auth.e2e-spec.ts (5.88 s)
+  ● Auth API › login › AUTH-03 el access token no contiene secretos (password ni hashToken)
+
+    expect(received).not.toHaveProperty(path)
+
+    Expected path: not "hashToken"
+
+    Received value: "$2b$10$jYNJDrtNO1h7DB1GDTOJse3FUAITJONgjztj83lSJfDxqx9WwMETO"
+
+      62 |       const payload = decodeToken(user.access_token);
+      63 |       expect(payload).not.toHaveProperty('password');
+    > 64 |       expect(payload).not.toHaveProperty('hashToken');
+         |                           ^
+      65 |       expect(payload.id).toBe(user.id);
+      66 |     });
+      67 |   });
+
+      at Object.<anonymous> (auth.e2e-spec.ts:64:27)
+
+  ● Auth API › refresh token › AUTH-09 un refresh token válido emite un nuevo par de tokens
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      103 |     it('AUTH-09 un refresh token válido emite un nuevo par de tokens', async () => {
+      104 |       const res = await refresh(user.refresh_token);
+    > 105 |       expect(res.status).toBe(200);
+          |                          ^
+      106 |       expect(res.body.access_token).toEqual(expect.any(String));
+      107 |       expect(res.body.refresh_token).toEqual(expect.any(String));
+      108 |       expect(res.body.refresh_token).not.toBe(user.refresh_token);
+
+      at Object.<anonymous> (auth.e2e-spec.ts:105:26)
+
+  ● Auth API › refresh token › AUTH-10 reutilizar un refresh token ya rotado es rechazado y revoca la sesión
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 401
+
+      112 |     it('AUTH-10 reutilizar un refresh token ya rotado es rechazado y revoca la sesión', async () => {
+      113 |       const first = await refresh(user.refresh_token);
+    > 114 |       expect(first.status).toBe(200);
+          |                            ^
+      115 |
+      116 |       const reuse = await refresh(user.refresh_token);
+      117 |       expect([401, 403]).toContain(reuse.status);
+
+      at Object.<anonymous> (auth.e2e-spec.ts:114:28)
+
+  ● Auth API › refresh token › AUTH-11 un access token no sirve como refresh token
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 201
+    Received array: [401, 403]
+
+      124 |     it('AUTH-11 un access token no sirve como refresh token', async () => {
+      125 |       const res = await refresh(user.access_token);
+    > 126 |       expect([401, 403]).toContain(res.status);
+          |                          ^
+      127 |     });
+      128 |
+      129 |     it('AUTH-12 tras logout, el refresh token deja de funcionar', async () => {
+
+      at Object.<anonymous> (auth.e2e-spec.ts:126:26)
+
+PASS test/smoke.e2e-spec.ts
+
+Test Suites: 3 failed, 1 passed, 4 total
+Tests:       14 failed, 47 passed, 61 total
+Snapshots:   0 total
+Time:        48.99 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

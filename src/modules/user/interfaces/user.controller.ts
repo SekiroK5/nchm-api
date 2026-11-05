@@ -14,6 +14,7 @@ export class UserController {
     @Get()
     @UseGuards(AuthGuard)
     getAllUsers(@Req() req: any): Promise<User[]> {
+        if (req.user.role !== 'ADMIN') throw new ForbiddenException("Solo un administrador puede listar usuarios.");
         return this.userService.getAllUsers();
     }
 
@@ -26,6 +27,7 @@ export class UserController {
     @Get(":id")
     @UseGuards(AuthGuard)
     public async listUserById(@Param("id", ParseIntPipe) id: number, @Req() req: any): Promise<User> {
+        if (req.user.role !== 'ADMIN' && req.user.id !== id) throw new ForbiddenException("No puedes ver el perfil de otra persona.");
         const result = await this.userService.getUserById(id);
 
         if (result == undefined)

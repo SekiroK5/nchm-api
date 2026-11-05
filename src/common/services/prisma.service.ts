@@ -11,7 +11,8 @@ export class PrismaService
 
         const pool = new Pool({
             connectionString: process.env.DATABASE_URL,
-            ssl: { rejectUnauthorized: false }
+            // Neon requiere SSL; la BD local de pruebas no (DB_SSL=false)
+            ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
         });
 
         pool.on('error', (err) => {
@@ -22,7 +23,9 @@ export class PrismaService
 
         super({
             adapter,
-            log: ['query', 'info', 'warn', 'error'],
+            log: process.env.PRISMA_LOG_QUERIES === 'true'
+                ? ['query', 'info', 'warn', 'error']
+                : ['warn', 'error'],
         });
     }
 

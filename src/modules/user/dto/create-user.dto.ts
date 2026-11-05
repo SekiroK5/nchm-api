@@ -1,16 +1,21 @@
+import { Trim } from "src/common/transforms";
 import { IsNotEmpty, MinLength, MaxLength, IsString, Matches, IsEmail, IsOptional } from "class-validator";
 
 export class CreateUserDto {
+    @Trim()
+    @Trim()
     @IsString()
     @IsNotEmpty()
     @MinLength(3, { message: "El nombre debe tener al menos 3 caracteres" })
     @MaxLength(100, { message: "El nombre debe tener menos de 100 caracteres" })
     name!: string;
+    @Trim()
     @IsString()
     @IsNotEmpty()
     @MinLength(3, { message: "El apellido debe tener al menos 3 caracteres" })
     @MaxLength(100, { message: "El apellido debe tener menos de 100 caracteres" })
     lastName!: string;
+    @Trim()
     @IsString()
     @IsNotEmpty()
     @MinLength(3, { message: "El nombre de usuario debe tener al menos 3 caracteres" })
